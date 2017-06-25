@@ -8,10 +8,15 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+
+import spooler.visao.JanelaSpooler;
+
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
+
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
@@ -23,6 +28,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JTable;
 import java.awt.Font;
+import java.awt.Color;
 
 public class JanelaUsuario extends JFrame {
 	private JPanel contentPaneImpressao;
@@ -49,6 +55,7 @@ public class JanelaUsuario extends JFrame {
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e){
 			e.printStackTrace();
 		}
+		setIconImage(Toolkit.getDefaultToolkit().getImage(JanelaSpooler.class.getResource("/usuario/imagens/iconPrinter.png")));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 562, 398);
 		setResizable(false);
@@ -66,6 +73,11 @@ public class JanelaUsuario extends JFrame {
 		miGerenciamentoImpressora = new JMenuItem("Gerenciamento da impressora");
 		mnMenu.add(miGerenciamentoImpressora);
 		getContentPane().setLayout(null);
+		
+		JLabel lblMduloDoUsurio = new JLabel("M\u00F3dulo do usu\u00E1rio");
+		lblMduloDoUsurio.setForeground(Color.LIGHT_GRAY);
+		lblMduloDoUsurio.setBounds(10, 314, 87, 14);
+		getContentPane().add(lblMduloDoUsurio);
 
 		this.contentPaneImpressao = new JPanel();
 		this.contentPaneGerenciamento = new JPanel();
@@ -111,7 +123,7 @@ public class JanelaUsuario extends JFrame {
 				
 			},
 			new String[] {
-				"ID","Dados", "Status", "Usuário"
+				"ID","Dados", "Usuário", "Status"
 			}
 		));
 		modeloTabela = (DefaultTableModel) tabelaProcessos.getModel();

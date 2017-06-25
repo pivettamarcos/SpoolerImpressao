@@ -24,35 +24,85 @@ import spooler.visao.JanelaSpooler;
 
 public class SpoolerControle {
 	private JanelaSpooler js;
-	private File arquivoUsuarios;
-	private Path pathArquivo;
-	private Queue<Consumivel> consumiveis = new LinkedList<Consumivel>();
-	private long numLinhasAtual = 0;
+	private File arquivoSpooler;
+	private Consumivel consumivel;
 
 	public SpoolerControle() {
-		arquivoUsuarios = new File("c:/Users/marco/workspace/SpoolerImpressora/texto/spooler.txt");
-		pathArquivo = arquivoUsuarios.toPath();
+		arquivoSpooler = new File("spooler.txt");
 		js = new JanelaSpooler();
 		
-		inicializaNumLinhas();
+		Thread escutaSuspensao = new Thread(new Runnable() {
+			public void run() {
+				while(true){
+					try{
+						int contLinhas = 0;
+						BufferedReader input = new BufferedReader(new FileReader(arquivoSpooler));
+						String ultimaLinha = new String(), linhaAtual;
+					
+						while ((linhaAtual = input.readLine()) != null) {
+							contLinhas++;
+							ultimaLinha = linhaAtual;
+						}
+					    				            
+						if(ultimaLinha.equals("SUSPENDER>>S")){
+							suspenderImpressaoAtual(contLinhas - 1);
+						}
+					    
+						input.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				
+			}
+		});
+		
+		Thread imprime = new Thread(new Runnable() {
+			public void run() {
+				while(true){
+					try{
+						if(consumivel != null){
+							if(consumivel.getCaracteresConsumiveis().size() > 0){
+								Character s = consumivel.getCaracteresConsumiveis().poll();
+								if(s != null){
+									System.out.println("[[ EU CONSUMI " + s + " ]]");
+									js.getTfConsumo().setText(js.getTfConsumo().getText() + s);
+									
+									// DORME 1 SEGUNDO PARA SIMULAR O CONSUMO DE CADA CARACTERE
+							        Thread.sleep(1000);
+								}
+							}else{
+								js.getTfConsumo().setText("IMPRESSÃO FINALIZADA");
+								js.getTfDescricao().setText("");
+								removeLinha(0);
+								consumivel = null;
+							}
+						}else{
+							lePrimeiraLinhaArquivo();
+						}
+				    } catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				
+			}
+		});
+		
+		escutaSuspensao.start();
+		imprime.start();
 	}
 	
-	private void inicializaNumLinhas(){
-		try{
-			Stream<String> lines = Files.lines(arquivoUsuarios.toPath());
-			numLinhasAtual = lines.count(); 
-			lines.close();
-	    } catch (IOException e) {
-			e.printStackTrace();
-		}
+	public static void main(String[] args) {
+		SpoolerControle sc = new SpoolerControle();
+		sc.js.setVisible(true);
 	}
 	
 	private void removeLinha(long numLinha){
-		File tempFile = new File("c:/Users/marco/workspace/SpoolerImpressora/texto/spoolerTmp.txt");
+		File tempFile = new File("spoolerTmp.txt");
 		int contLine = 0;
 		BufferedReader reader;
 		try {
-			reader = new BufferedReader(new FileReader(arquivoUsuarios));
+			reader = new BufferedReader(new FileReader(arquivoSpooler));
 			BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile, false));
 	
 			String currentLine;
@@ -68,82 +118,10 @@ public class SpoolerControle {
 			writer.close(); 
 			reader.close(); 
 
-			org.apache.commons.io.FileUtils.copyFile(tempFile, arquivoUsuarios);
-			//org.apache.commons.io.FileUtils.deleteQuietly(sourceFile);
-
-
-			//System.out.println(successful);
+			org.apache.commons.io.FileUtils.copyFile(tempFile, arquivoSpooler);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-	
-	public static void main(String[] args) {
-		
-		SpoolerControle sc = new SpoolerControle();
-		sc.js.setVisible(true);
-		sc.leProxPosicao();
-		
-		Thread escutaSuspensao = new Thread(new Runnable() {
-			public void run() {
-				while(true){
-					try{
-						int cont = 0;
-						BufferedReader input = new BufferedReader(new FileReader(sc.arquivoUsuarios));
-						String ultimaLinha = new String(), linhaAtual;
-					
-						while ((linhaAtual = input.readLine()) != null) {
-							cont++;
-							ultimaLinha = linhaAtual;
-						}
-					    				            
-						if(ultimaLinha != null && ultimaLinha.equals("SUSPENDER>>S")){
-							sc.suspenderImpressaoAtual(cont - 1);
-						}
-					    
-						input.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-				
-			}
-		});
-		
-		
-		Thread t2 = new Thread(new Runnable() {
-			public void run() {
-				while(true){
-					try{
-						if(sc.consumiveis.size() > 0){
-							if(sc.consumiveis.peek().getCaracteresConsumiveis().size() > 0){
-								Character s = sc.consumiveis.peek().getCaracteresConsumiveis().poll();
-								if(s != null){
-									System.out.println("[[ EU CONSUMI " + s + " ]]");
-									sc.js.getTfConsumo().setText(sc.js.getTfConsumo().getText() + s);
-								}
-									
-							}else{
-								sc.js.getTfConsumo().setText("IMPRESSÃO FINALIZADA");
-								sc.js.getTfDescricao().setText("");
-								sc.removeLinha(0);
-								sc.numLinhasAtual--;
-								sc.consumiveis.poll();
-								sc.leProxPosicao();
-							}
-						}
-				        Thread.sleep(1000);
-				    } catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-				
-			}
-		});
-		
-		escutaSuspensao.start();
-		t2.start();
 	}
 	
 	private void suspenderImpressaoAtual(int ultimaLinha){
@@ -151,27 +129,27 @@ public class SpoolerControle {
 		js.getTfDescricao().setText("");
 		
 		removeLinha(ultimaLinha);
-		consumiveis.poll();
+		consumivel = null;
 		removeLinha(0);
-		leProxPosicao();
+		lePrimeiraLinhaArquivo();
 	}
 	
-	//Será rodado enquanto a impressora estiver em funcionamento
-	private void leProxPosicao(){
+	//Irá checar se existe algum dado a ser impresso que está no buffer
+	private void lePrimeiraLinhaArquivo(){
 		String proxLinha = null;
+		String[] partes = null;
 		do{
 			BufferedReader input;
 			try {
-			input = new BufferedReader(new FileReader(arquivoUsuarios));
+			input = new BufferedReader(new FileReader(arquivoSpooler));
 	        proxLinha = new String();
 	
 	        proxLinha = input.readLine();
-	        			
 	        if(proxLinha != null){
 	        	System.out.println(proxLinha);
-	        	String[] partes = proxLinha.split(">>");
+	        	partes = proxLinha.split(">>");
 	        	
-	        	consumiveis.add(new Consumivel(partes[0],partes[1]));
+	        	consumivel = new Consumivel(partes[0],partes[1]);
 	        	
 	        }
 	        
@@ -180,7 +158,7 @@ public class SpoolerControle {
 				e.printStackTrace();
 			}
 		}while(proxLinha == null);
-		js.getTfDescricao().setText("Imprimindo "+ proxLinha);
+		js.getTfDescricao().setText("Imprimindo "+ partes[0]);
 		js.getTfConsumo().setText("");
 	}
 	

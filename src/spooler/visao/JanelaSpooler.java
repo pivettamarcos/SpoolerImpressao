@@ -11,6 +11,7 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.JTextField;
+import java.awt.Toolkit;
 
 public class JanelaSpooler extends JFrame {
 
@@ -19,6 +20,8 @@ public class JanelaSpooler extends JFrame {
 	private JTextField tfConsumo;
 
 	public JanelaSpooler() {
+		setIconImage(Toolkit.getDefaultToolkit().getImage(JanelaSpooler.class.getResource("/spooler/imagens/iconPrinter.png")));
+		setTitle("Impressora");
 		setResizable(false);
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -55,6 +58,4 @@ public class JanelaSpooler extends JFrame {
 	public JTextField getTfConsumo() {
 		return tfConsumo;
 	}
-
-	
 }

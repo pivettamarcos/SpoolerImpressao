@@ -19,15 +19,16 @@ import usuario.visao.JanelaUsuario;
 
 public class ControleUsuario {
 	private JanelaUsuario ju;
-	private File arquivoUsuarios;
+	private File arquivoSpooler;
 	private PrintWriter arquivoUsuariosPW;
 	private Thread atualizacaoTabela;
 	
 	public ControleUsuario(){
 		ju = new JanelaUsuario();
-		arquivoUsuarios = new File("c:/Users/marco/workspace/SpoolerImpressora/texto/spooler.txt");
+		arquivoSpooler = new File("spooler.txt");
+		inicializaArquivoUsuariosPW();
 
-		
+		//Thread que atualiza a tabela de impressão a cada meio segundo
 		atualizacaoTabela = new Thread(new Runnable() {
 			public void run() {
 				while(true){
@@ -41,7 +42,7 @@ public class ControleUsuario {
 			}
 		});
 		atualizacaoTabela.start();
-		inicializaArquivoUsuariosPW();
+		
 		inicializaListeners();
 	}
 	
@@ -63,14 +64,10 @@ public class ControleUsuario {
 		
 		ju.getBtnEnviarParaImpressao().addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				arquivoUsuariosPW.println(ju.getJtfEntradaDados().getText() + ">>" + ju.getJtfNomeUsuario().getText());
-				arquivoUsuariosPW.flush();
-			}
-		});
-		
-		ju.getJtfEntradaDados().addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
+				if(!ju.getJtfEntradaDados().getText().equals("") && !ju.getJtfNomeUsuario().getText().equals("")){
+					arquivoUsuariosPW.println(ju.getJtfEntradaDados().getText() + ">>" + ju.getJtfNomeUsuario().getText());
+					arquivoUsuariosPW.flush();
+				}
 			}
 		});
 		
@@ -87,8 +84,6 @@ public class ControleUsuario {
 			}
 		});
 		
-		
-		
 		ju.addWindowListener(new WindowAdapter()
         {
             public void windowClosing(WindowEvent e)
@@ -101,18 +96,18 @@ public class ControleUsuario {
 	
 	private void inicializaArquivoUsuariosPW(){
 		try {
-			arquivoUsuariosPW = new PrintWriter(new FileWriter("c:/Users/marco/workspace/SpoolerImpressora/texto/spooler.txt", true));
+			arquivoUsuariosPW = new PrintWriter(new FileWriter("spooler.txt", true));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	private void removeLinha(long numLinha){
-		File tempFile = new File("c:/Users/marco/workspace/SpoolerImpressora/texto/spoolerTmp.txt");
+		File tempFile = new File("spoolerTmp.txt");
 		int contLine = 0;
 		BufferedReader reader;
 		try {
-			reader = new BufferedReader(new FileReader(arquivoUsuarios));
+			reader = new BufferedReader(new FileReader(arquivoSpooler));
 			BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile, false));
 			
 			String currentLine;
@@ -128,13 +123,8 @@ public class ControleUsuario {
 			writer.close(); 
 			reader.close(); 
 
-			org.apache.commons.io.FileUtils.copyFile(tempFile, arquivoUsuarios);
-			//org.apache.commons.io.FileUtils.deleteQuietly(sourceFile);
-
-
-			//System.out.println(successful);
+			org.apache.commons.io.FileUtils.copyFile(tempFile, arquivoSpooler);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -144,17 +134,16 @@ public class ControleUsuario {
 		BufferedReader input;
 		try {
 			int cont = 0;
-			input = new BufferedReader(new FileReader(arquivoUsuarios));
-			String ultimaLinha = new String(), linhaAtual;
+			input = new BufferedReader(new FileReader(arquivoSpooler));
+			String linhaAtual;
 			ju.getModeloTabela().setRowCount(0);
 			
 			while ((linhaAtual = input.readLine()) != null) {
-				ultimaLinha = linhaAtual;
-				String[] partes = ultimaLinha.split(">>");
+				String[] partes = linhaAtual.split(">>");
 				if(cont == 0)
-					ju.getModeloTabela().addRow(new Object[] {cont,partes[0], "IMPRIMINDO", partes[1]});
+					ju.getModeloTabela().addRow(new Object[] {cont,partes[0], partes[1],"IMPRIMINDO"});
 				else
-					ju.getModeloTabela().addRow(new Object[] {cont,partes[0], "EM ESPERA", partes[1]});
+					ju.getModeloTabela().addRow(new Object[] {cont,partes[0], partes[1],"EM ESPERA"});
 
 				cont++;
 			}
@@ -167,8 +156,7 @@ public class ControleUsuario {
 	}
 	
 	public static void main(String[] args) {
-		ControleUsuario cu = new ControleUsuario();
-		
-		cu.ju.setVisible(true);
+		ControleUsuario cou = new ControleUsuario();
+		cou.ju.setVisible(true);
 	}
 }

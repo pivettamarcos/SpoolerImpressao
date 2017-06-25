@@ -29,6 +29,4 @@ public class Consumivel {
 	public String getCaracteresOriginais() {
 		return caracteresOriginais;
 	}
-	
-	
 }
