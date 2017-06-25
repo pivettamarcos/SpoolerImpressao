@@ -25,7 +25,7 @@ public class ControleUsuario {
 	
 	public ControleUsuario(){
 		ju = new JanelaUsuario();
-		arquivoUsuarios = new File("c:/Users/marco/workspace/SpoolerImpressora/texto/consulta.txt");
+		arquivoUsuarios = new File("c:/Users/marco/workspace/SpoolerImpressora/texto/spooler.txt");
 
 		
 		atualizacaoTabela = new Thread(new Runnable() {
@@ -63,7 +63,7 @@ public class ControleUsuario {
 		
 		ju.getBtnEnviarParaImpressao().addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				arquivoUsuariosPW.println(ju.getJtfEntradaDados().getText());
+				arquivoUsuariosPW.println(ju.getJtfEntradaDados().getText() + ">>" + ju.getJtfNomeUsuario().getText());
 				arquivoUsuariosPW.flush();
 			}
 		});
@@ -80,6 +80,14 @@ public class ControleUsuario {
 			}
 		});
 		
+		ju.getBtnSuspenderImpressaoAtual().addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				arquivoUsuariosPW.println("SUSPENDER>>S");
+				arquivoUsuariosPW.flush();
+			}
+		});
+		
+		
 		
 		ju.addWindowListener(new WindowAdapter()
         {
@@ -93,14 +101,14 @@ public class ControleUsuario {
 	
 	private void inicializaArquivoUsuariosPW(){
 		try {
-			arquivoUsuariosPW = new PrintWriter(new FileWriter("c:/Users/marco/workspace/SpoolerImpressora/texto/consulta.txt", true));
+			arquivoUsuariosPW = new PrintWriter(new FileWriter("c:/Users/marco/workspace/SpoolerImpressora/texto/spooler.txt", true));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	private void removeLinha(long numLinha){
-		File tempFile = new File("c:/Users/marco/workspace/SpoolerImpressora/texto/consultaTmp.txt");
+		File tempFile = new File("c:/Users/marco/workspace/SpoolerImpressora/texto/spoolerTmp.txt");
 		int contLine = 0;
 		BufferedReader reader;
 		try {
@@ -142,10 +150,11 @@ public class ControleUsuario {
 			
 			while ((linhaAtual = input.readLine()) != null) {
 				ultimaLinha = linhaAtual;
+				String[] partes = ultimaLinha.split(">>");
 				if(cont == 0)
-					ju.getModeloTabela().addRow(new Object[] {ultimaLinha, "IMPRIMINDO"});
+					ju.getModeloTabela().addRow(new Object[] {cont,partes[0], "IMPRIMINDO", partes[1]});
 				else
-					ju.getModeloTabela().addRow(new Object[] {ultimaLinha, "EM ESPERA"});
+					ju.getModeloTabela().addRow(new Object[] {cont,partes[0], "EM ESPERA", partes[1]});
 
 				cont++;
 			}

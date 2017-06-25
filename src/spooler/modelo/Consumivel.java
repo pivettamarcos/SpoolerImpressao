@@ -6,10 +6,12 @@ import java.util.Queue;
 public class Consumivel {
 	private Queue<Character> caracteresConsumiveis;
 	private String caracteresOriginais;
+	private String nomeUsuario;
 	
-	public Consumivel(String characteresOriginais) {
+	public Consumivel(String characteresOriginais, String nomeUsuario) {
 		this.caracteresConsumiveis = new LinkedList<Character>();
 		this.caracteresOriginais = characteresOriginais;
+		this.nomeUsuario = nomeUsuario;
 		
 		inicializaCaracteresConsumiveis();
 	}
